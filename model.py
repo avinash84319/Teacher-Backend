@@ -15,7 +15,7 @@ def make_chain_image():
     final_prompt = ChatPromptTemplate.from_template(template)
 
     # Option 1: LLM
-    model = ChatOllama(model="llava")
+    model = ChatOllama(model="llama3")
     # Option 2: Multi-modal LLM
     # model = LLaVA
 
