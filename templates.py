@@ -7,7 +7,7 @@
 
 
 template_question_dictionary={
-    "mcqs": "Create {no_of_questions} questions with four options and correct answers based on this text:{text} and {difficulty} and also {marks} please give the output in json format and keep all questions in a list.",
+    "mcq": "Create {no_of_questions} questions with four options and correct answers based on this text:{text} and {difficulty} and also {marks} please give the output in json format and keep all questions in a list.",
     "subjective": "Create a {no_of_questions} subjective question with the correct answers based on this text:{text} and {difficulty} and also {marks} please give the output in json format and keep all questions in a list.",
     "true_false": "Create {no_of_questions} true/false questions, also give the correct answer in only true or false based on this text:{text} and {difficulty} and also {marks} please give the output in json format and keep all questions in a list.",
     "fill_in_the_blank": """Create {no_of_questions} fill-in-the-blanks questions where one word will be missing , instead of missing word add underscores and remove the word from question, with the correct answers will be that missing word, based on this text:{text} and {difficulty} and also {marks} please give the output in json format and keep all questions in a list. examples :The protagonist of the novel "1984" is ___ (Winston/O'Brien).
@@ -26,8 +26,8 @@ template_difficulty_dictionary={
 }
 
 template_marks_dictionary={
-    "1":"keep the length of the answers for 1 marks",
-    "2":"keep the length of the answers for 2 marks",
-    "5":"keep the length of the answers for 5 marks"
+    1:"keep the length of the answers for 1 marks",
+    2:"keep the length of the answers for 2 marks",
+    5:"keep the length of the answers for 5 marks"
 }
 
