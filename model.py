@@ -5,20 +5,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import JsonOutputParser
 
 
-def make_chain_image():
-
-    template = """ 
-    You are a teacher and need to create a test for your students, based on the following text:
-    {prompt}
-    don't repeat the same question, and keep the questions unique.
-    also give for each question type,difficulty and marks.
-    Only give the json output.
-    types should be one of  mcq,subjective,true_false,fill_in_the_blank,match_the_following,one_word
-    difficulty should be one of easy,medium,hard
-    marks should be one of 1,2,5
-    keep the json format for each question as follows:
-
-    example json format for mcq:
+"""
+example json format for mcq:
         question: "What is the capital of France?",
         options: ["Paris", "London", "Berlin", "Madrid"],
         correct_answer: 0  # index of the correct answer
@@ -63,11 +51,33 @@ def make_chain_image():
         difficulty: "easy",
         marks: 1
 
+"""
+
+
+def make_chain_image():
+
+    template = """ 
+    You are a teacher and need to create a test for your students
+
+    only give json output and based on the requirments generate the questions.
+
+    The source text is as follows:
+
+    {text}
+    
+    requirements are as follows:
+    {prompt}
+
+    only give correct no of questions don't give extra questions,
+    don't repeat the same question, and keep the questions unique.
+    also give for each question type,difficulty and marks.
+
+    give output in json and all questions in a list.
     """
     
     final_prompt = ChatPromptTemplate.from_template(template)
 
-    model = ChatOllama(model="llama3")
+    model = ChatOllama(model="llama3.1",format="json")
 
     # RAG pipeline
     chain = ( 
@@ -78,6 +88,6 @@ def make_chain_image():
 
     return chain
 
-def answer_question(prompt):
+def answer_question(prompt,text):
     chain = make_chain_image()
-    return chain.invoke({"prompt": prompt})
+    return chain.invoke({"prompt": prompt,"text":text})

@@ -1,14 +1,9 @@
 from model import answer_question
 from templates import template_question_dictionary,template_difficulty_dictionary,template_marks_dictionary
+import json
 
-exp_json={
-    "no_of_questions": 10,
-    "question_type": "mcqs",
-    "difficulty": "easy",
-    "marks": "1"
-}
 
-def generate_template(text,exp_json):
+def generate_template(exp_json):
     no_of_questions=exp_json["no_of_questions"]
     question_type=exp_json["question_type"]
     difficulty=exp_json["difficulty"]
@@ -16,7 +11,7 @@ def generate_template(text,exp_json):
     template=template_question_dictionary[question_type]
     difficulty=template_difficulty_dictionary[difficulty]
     marks=template_marks_dictionary[marks]
-    return template.format(text=text,no_of_questions=no_of_questions,difficulty=difficulty,marks=marks)
+    return template.format(no_of_questions=no_of_questions,difficulty=difficulty,marks=marks)
 
 
 def generate_questions(data):
@@ -44,7 +39,7 @@ def generate_questions(data):
                     if question['type']==question_type and question['difficulty']==difficulty and question['marks']==marks:
                         count+=1
                 if count>0:
-                    template+=generate_template(text, {"no_of_questions":count,"question_type":question_type,"difficulty":difficulty,"marks":marks})
+                    template+=generate_template({"no_of_questions":count,"question_type":question_type,"difficulty":difficulty,"marks":marks})
     
     print(f'Template: {template}')
 
@@ -53,9 +48,12 @@ def generate_questions(data):
         return data
 
     #generate the questions
-    generated_questions = answer_question(template)
+    generated_questions = answer_question(template,text)
 
     print(f'Generated questions: {generated_questions}')
+
+    generated_questions=generated_questions["questions"]
+    
 
     #store the questions in the data according to the sections and required format
     done_indexes=[-1]*len(generated_questions)

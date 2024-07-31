@@ -47,12 +47,12 @@ def secStore():
 
 
         # storing user pdf details in the database
-        result=result and store_user_pdf(userid,pdfid)
+        # result=result and store_user_pdf(userid,pdfid)
 
-        for i,section_data in enumerate(data['sections']):
+        # for i,section_data in enumerate(data['sections']):
 
-            # storing the section details in the database
-            result=result and store_section_info(pdfid+"/"+str(i),section_data)
+        #     # storing the section details in the database
+        #     result=result and store_section_info(pdfid+"/"+str(i),section_data)
 
         if result!=True:
 
