@@ -57,22 +57,15 @@ example json format for mcq:
 def make_chain_image():
 
     template = """ 
-    You are a teacher and need to create a test for your students
-
-    only give json output and based on the requirments generate the questions.
 
     The source text is as follows:
-
     {text}
     
-    requirements are as follows:
+    based on the text, generate all the following json fields with proper values:
     {prompt}
 
-    only give correct no of questions don't give extra questions,
-    don't repeat the same question, and keep the questions unique.
-    also give for each question type,difficulty and marks.
-
-    give output in json and all questions in a list.
+    and give the output in list of questions
+    
     """
     
     final_prompt = ChatPromptTemplate.from_template(template)

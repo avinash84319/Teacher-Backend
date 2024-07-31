@@ -1,17 +1,41 @@
 from model import answer_question
-from templates import template_question_dictionary,template_difficulty_dictionary,template_marks_dictionary
 import json
 
+def generate_template(data):
+    
+    template={}
+    template["type"]=data["type"]
+    template["difficulty"]=data["difficulty"]
+    template["marks"]=data["marks"]
+    
+    if data["type"]=="mcq":
+        template["question"]=""
+        template["options"]="[]"
+        template["correct_answer_index"]=""
 
-def generate_template(exp_json):
-    no_of_questions=exp_json["no_of_questions"]
-    question_type=exp_json["question_type"]
-    difficulty=exp_json["difficulty"]
-    marks=exp_json["marks"]
-    template=template_question_dictionary[question_type]
-    difficulty=template_difficulty_dictionary[difficulty]
-    marks=template_marks_dictionary[marks]
-    return template.format(no_of_questions=no_of_questions,difficulty=difficulty,marks=marks)
+    elif data["type"]=="subjective":
+        template["question"]=""
+        template["answer"]=""
+
+    elif data["type"]=="true_false":
+        template["question"]=""
+        template["answer"]=""
+
+    elif data["type"]=="fill_in_the_blank":
+        template["question"]=""
+        template["answer"]=""
+
+    elif data["type"]=="match_the_following":
+        template["question"]=""
+        template["options1"]="[]"
+        template["options2"]="[]"
+        template["correct_answer"]="[]"
+
+    elif data["type"]=="one_word":
+        template["question"]=""
+        template["answer"]=""
+
+    return template
 
 
 def generate_questions(data):
@@ -28,18 +52,10 @@ def generate_questions(data):
     # generate complete questions prompt
     template=""
 
-    #generate the jsons for the questions
-    for i,question_type in enumerate(['mcq','subjective','true_false','fill_in_the_blank','match_the_following','one_word']):
-        for j,difficulty in enumerate(['easy','medium','hard']):
-            for k,marks in enumerate([1,2,5]):
-                count = 0
-                for question in questions:
-                    print(f'Question: {question}')
-                    print(question['type']==question_type,question['difficulty']==difficulty,question['marks']==marks)
-                    if question['type']==question_type and question['difficulty']==difficulty and question['marks']==marks:
-                        count+=1
-                if count>0:
-                    template+=generate_template({"no_of_questions":count,"question_type":question_type,"difficulty":difficulty,"marks":marks})
+    for question in questions:
+        template+=str(generate_template(question))+","
+
+    template='{questions:['+template[:-1]+']}'
     
     print(f'Template: {template}')
 
