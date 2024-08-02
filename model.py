@@ -4,56 +4,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import JsonOutputParser
 
-
-"""
-example json format for mcq:
-        question: "What is the capital of France?",
-        options: ["Paris", "London", "Berlin", "Madrid"],
-        correct_answer: 0  # index of the correct answer
-        type: "mcq",
-        difficulty: "easy",
-        marks: 1
-
-    example json format for subjective:
-        question: "What is the capital of France?",
-        answer: "Paris",
-        type: "subjective",
-        difficulty: "easy",
-        marks: 1
-
-    example json format for true_false:
-        question: "Paris is the capital of France",
-        answer: "True",
-        type: "true_false",
-        difficulty: "easy",
-        marks: 1
-    
-    example json format for fill_in_the_blank:
-        question: "The capital of France is ___",
-        answer: "Paris",
-        type: "fill_in_the_blank",
-        difficulty: "easy",
-        marks: 1
-
-    example json format for match_the_following:
-        question: "Match the following",
-        options1: ["Paris", "London", "Berlin", "Madrid"],
-        options2: ["Spain","France","Germany","England"],
-        correct_answer: [1,3,2,0]  # index of the correct answer
-        type: "match_the_following",
-        difficulty: "easy",
-        marks: 1
-
-    example json format for one_word:
-        question: "What is the capital of France?",
-        answer: "Paris",
-        type: "one_word",
-        difficulty: "easy",
-        marks: 1
-
-"""
-
-
 def make_chain_image():
 
     template = """ 
@@ -61,10 +11,10 @@ def make_chain_image():
     The source text is as follows:
     {text}
     
-    based on the text, generate all the following json fields with proper values:
+    based on the text, generate all the following json fields with proper values for the following jsons:
     {prompt}
 
-    and give the output in list of questions
+    and give the output in list of questions and no of questions in the list should be equal to the number of jsons in the prompt
     
     """
     

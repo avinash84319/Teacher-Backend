@@ -6,6 +6,7 @@ import logging
 import requests
 from flask_cors import CORS, cross_origin
 import base64
+from auth import google_auth,profile
 
 
 #setup logging
@@ -14,9 +15,64 @@ import base64
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/')
+def hellop():
+    return "Welcome to Backend for teacherstudent"
+
 @app.route('/api/')
 def hello():
     return "Welcome to Backend for teacherstudent"
+
+@app.route('/auth/google', methods=['POST'])
+def google_a():
+    data = request.json
+    return google_auth(data)
+
+@app.route('/api/profile', methods=['GET'])
+def profile_a():
+    auth_header = request.headers.get('Authorization')
+    return profile(auth_header)
+
+@app.route('/api/fetchFiles')
+def fetchFiles():
+    
+    try:
+        user_id = request.args.get('user_id')
+
+        print(" getting files for user ",user_id)
+
+        return jsonify({"user_id": user_id, "files": fetch_files(user_id)})
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": "An error occurred"})
+
+@app.route('/api/fetchFileDetails')
+def fetchFileDetails():
+    try:
+        pdf_id = request.args.get('pdf_id')
+
+        print(" getting file details for pdf ",pdf_id)
+
+        return jsonify({"pdf_id": pdf_id, "sections": fetch_section_details(pdf_id)})
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": "An error occurred"})
+
+@app.route('/api/deleteFile')
+def deleteFile():
+    try:
+        pdf_id = request.args.get('pdf_id')
+
+        print(" deleting file for pdf ",pdf_id)
+
+        return jsonify({"pdf_id": pdf_id, "status": delete_pdf(pdf_id)})
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": "An error occurred"})
+
 
 
 @app.route('/api/sectionDetails', methods=['POST'])
@@ -46,13 +102,13 @@ def secStore():
         result=store_pdf(pdfid,path)
 
 
-        # storing user pdf details in the database
-        # result=result and store_user_pdf(userid,pdfid)
+        #storing user pdf details in the database
+        result=result and store_user_pdf(userid,pdfid,data['pdf_name'])
 
-        # for i,section_data in enumerate(data['sections']):
+        for i,section_data in enumerate(data['sections']):
 
-        #     # storing the section details in the database
-        #     result=result and store_section_info(pdfid+"/"+str(i),section_data)
+            # storing the section details in the database
+            result=result and store_section_info(pdfid,pdfid+"/"+str(i),section_data)
 
         if result!=True:
 

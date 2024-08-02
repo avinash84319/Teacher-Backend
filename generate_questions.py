@@ -29,7 +29,7 @@ def generate_template(data):
         template["question"]=""
         template["options1"]="[]"
         template["options2"]="[]"
-        template["correct_answer"]="[]"
+        template["correct_answers"]="[]"
 
     elif data["type"]=="one_word":
         template["question"]=""
@@ -56,6 +56,7 @@ def generate_questions(data):
         template+=str(generate_template(question))+","
 
     template='{questions:['+template[:-1]+']}'
+    template=template+"the no of questions required are :"+str(len(questions))
     
     print(f'Template: {template}')
 
