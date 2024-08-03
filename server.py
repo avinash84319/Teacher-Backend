@@ -7,6 +7,8 @@ import requests
 from flask_cors import CORS, cross_origin
 import base64
 from auth import google_auth,profile
+from gcpUpload import upload_blob
+from model import check_model
 
 
 #setup logging
@@ -52,9 +54,11 @@ def fetchFileDetails():
     try:
         pdf_id = request.args.get('pdf_id')
 
+        pdf_url=get_pdf_path(pdf_id)
+
         print(" getting file details for pdf ",pdf_id)
 
-        return jsonify({"pdf_id": pdf_id, "sections": fetch_section_details(pdf_id)})
+        return jsonify({"pdf_id": pdf_id,"pdf_url":pdf_url,"sections": fetch_section_details(pdf_id)})
 
     except Exception as e:
         logging.error(e)
@@ -87,10 +91,12 @@ def secStore():
 
         pdf=data["pdf_content"]                                    #extracting the pdf
         pdf = base64.b64decode(pdf)
-        with open(f'./user_files/{userid+"-"+pdfid}.pdf', 'wb') as f:     #saving the pdf in the server(local) change to s3 bucket
+        with open(f'./user_files/{userid+"-"+pdfid}.pdf', 'wb') as f: 
             f.write(pdf)
                  
         path = f'./user_files/{userid+"-"+pdfid}.pdf'
+
+        file_url=upload_blob(path,userid+"-"+pdfid+".pdf")                  #uploading the pdf to the gcp cloud storage and returning the url
 
         text=pdf_to_text(path)                                      #converting the pdf to text
         data['text']=text
@@ -99,7 +105,7 @@ def secStore():
         data=generate_questions(data)                               #generating questions from the text and storing in the data
 
         #store the pdf path or link in the database
-        result=store_pdf(pdfid,path)
+        result=store_pdf(pdfid,file_url)
 
 
         #storing user pdf details in the database
@@ -120,5 +126,19 @@ def secStore():
     #     return jsonify({"error": "An error occurred"})
 
 
-if __name__ == '__main__':  
-   app.run(debug=True)
+if __name__ == '__main__':
+    
+    # check if the tables are created
+    result=create_db()
+    if result!=True:
+        logging.error(result)
+        print(result)
+
+    # check if model is ready
+    result=check_model()
+    if result!=True:
+        logging.error(result)
+    print(result)
+    
+
+    app.run(debug=True)

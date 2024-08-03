@@ -16,11 +16,22 @@ mydb.autocommit = True
 
 pool = mydb.cursor()
 
-pool.execute("CREATE TABLE IF NOT EXISTS users (id VARCHAR(255), name VARCHAR(255), email VARCHAR(255))")
-pool.execute("CREATE TABLE IF NOT EXISTS passwords (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, password VARCHAR(255))")
-pool.execute("CREATE TABLE IF NOT EXISTS sections (pdfid VARCHAR(255),sectionid VARCHAR(255) PRIMARY KEY, name VARCHAR(255), mcq TEXT, mc TEXT, ftb TEXT, tf TEXT, mtf TEXT, sub TEXT, pag TEXT,questions TEXT,easy INT,medium INT,hard INT,easyMarks INT,mediumMarks INT,hardMarks INT)")
-pool.execute("CREATE TABLE IF NOT EXISTS userpdfs (userid varchar(255), pdfid VARCHAR(255), pdfname VARCHAR(255))")
-pool.execute("CREATE TABLE IF NOT EXISTS pdfs (pdfid VARCHAR(255), path TEXT)")
+def create_db():
+
+    try:
+        pool.execute("CREATE DATABASE IF NOT EXISTS "+os.getenv("DB_NAME"))
+        pool.execute("USE "+os.getenv("DB_NAME)"))
+        pool.execute("CREATE TABLE IF NOT EXISTS users (id VARCHAR(255), name VARCHAR(255), email VARCHAR(255))")
+        pool.execute("CREATE TABLE IF NOT EXISTS passwords (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, password VARCHAR(255))")
+        pool.execute("CREATE TABLE IF NOT EXISTS sections (pdfid VARCHAR(255),sectionid VARCHAR(255) PRIMARY KEY, name VARCHAR(255), mcq TEXT, mc TEXT, ftb TEXT, tf TEXT, mtf TEXT, sub TEXT, pag TEXT,questions TEXT,easy INT,medium INT,hard INT,easyMarks INT,mediumMarks INT,hardMarks INT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS userpdfs (userid varchar(255), pdfid VARCHAR(255), pdfname VARCHAR(255))")
+        pool.execute("CREATE TABLE IF NOT EXISTS pdfs (pdfid VARCHAR(255), path TEXT)")
+
+        return True
+
+    except Exception as e:
+        print(e)
+        return False
 
 
 def store_pdf(pdf_id, pdf_path):
@@ -48,6 +59,11 @@ def store_user_pdf(user_id, pdf_id,pdf_name):
     return True
 
 def store_section_info(pdfid,id,data):
+
+    # check if the section is already stored and delete it
+    pool.execute("SELECT * FROM sections WHERE pdfid = %s AND sectionid = %s", (pdfid, id))
+    if pool.fetchone():
+        pool.execute("DELETE FROM sections WHERE pdfid = %s AND sectionid = %s", (pdfid, id))
 
     name = data['name']
     mcq = data['mcq']
@@ -182,6 +198,17 @@ def delete_pdf(pdf_id):
         return e
 
     return True
+
+
+def get_pdf_path(pdf_id):
+    try:
+        pool.execute("SELECT path FROM pdfs WHERE pdfid = %s", (pdf_id,))
+
+        return pool.fetchone()[0]
+
+    except Exception as e:
+        print(e)
+        return False
 
 
 

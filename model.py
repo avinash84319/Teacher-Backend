@@ -34,3 +34,7 @@ def make_chain_image():
 def answer_question(prompt,text):
     chain = make_chain_image()
     return chain.invoke({"prompt": prompt,"text":text})
+
+def check_model():
+    
+    return answer_question("hello","hello")

@@ -20,6 +20,10 @@ pdfminer-six = "^20240706"
 flask-cors = "^4.0.1"
 pybase64 = "^1.3.2"
 firebase-admin = "^6.5.0"
+google-cloud-storage = "^2.18.0"
+google-cloud = "^0.34.0"
+google-api-python-client = "^2.139.0"
+google = "^3.0.0"
 
 
 [build-system]
