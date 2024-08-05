@@ -25,3 +25,14 @@ def upload_blob(path,gcp_path):
     )
 
     return file_url
+
+
+def check_bucket():
+    """Check if the bucket exists"""
+    bucket_name = "teacherstudent"
+    storage_client = storage.Client()
+    try:
+        bucket = storage_client.get_bucket(bucket_name)
+        return True
+    except:
+        return False

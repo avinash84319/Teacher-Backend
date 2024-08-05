@@ -3,6 +3,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import JsonOutputParser
+import os
 
 def make_chain_image():
 
@@ -20,7 +21,7 @@ def make_chain_image():
     
     final_prompt = ChatPromptTemplate.from_template(template)
 
-    model = ChatOllama(model="llama3.1",format="json")
+    model = ChatOllama(model="llama3.1",format="json", base_url=os.getenv("LLAMA_HOST"))
 
     # RAG pipeline
     chain = ( 

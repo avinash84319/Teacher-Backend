@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Qgen-mysql-server@avi
+      MYSQL_DATABASE: teacherstudent
+    ports:
+      - 3307:3306
+    volumes:
+      - ./data:/var/lib/mysql
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 40s
+      retries: 15
+  chatmodel:
+    image: ollama/ollama
+    command: >
+      ollama run llama3.1
+    ports:
+      - 11434:11434
+    networks:
+      - my-network
+    healthcheck:
+      test: ollama --version || exit 1
+      interval: 10s
+  api:
+    image: avireddy23/teacher
+    environment:
+      - DB_PORT=3306  # Updated port to 3307
+      - DB_HOST=db    # Use the service name for internal Docker network
+      - DB_USER=root
+      - DB_PASSWORD=Qgen-mysql-server@avi
+      - GOOGLE_APPLICATION_CREDENTIALS=gcpkey.json
+      - LLAMA_HOST=http://chatmodel:11434
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud
+
+    ports:
+      - 5000:5000
+    networks:
+      - my-network
+    depends_on:
+      db:
+        condition: service_healthy
+      chatmodel:
+        condition: service_healthy
+
+networks:
+  my-network:
+   driver:
+    bridge

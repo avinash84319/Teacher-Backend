@@ -2,3 +2,6 @@ error.log
 __pycache__/
 .env
 *pdf
+*json
+data
+gkey.json

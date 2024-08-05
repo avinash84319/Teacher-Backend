@@ -7,7 +7,7 @@ import requests
 from flask_cors import CORS, cross_origin
 import base64
 from auth import google_auth,profile
-from gcpUpload import upload_blob
+from gcpUpload import *
 from model import check_model
 
 
@@ -139,6 +139,12 @@ if __name__ == '__main__':
     if result!=True:
         logging.error(result)
     print(result)
+
+    #check if the gcp bucket is ready
+    result=check_bucket()
+    if result!=True:
+        logging.error(result)
+        print(result)
     
 
     app.run(debug=True)
