@@ -1,3 +1,39 @@
+## Screenshots
+
+![image](images/login.png)
+
+---
+
+![image](images/new.png)
+
+---
+
+![image](images/past.png)
+
+---
+
+![image](images/project.png)
+
+---
+
+![image](images/questions.png)
+
+---
+
+![image](images/after.png)
+
+
+---
+
+## Description
+
+This project can help teachers or students
+
+Teachers :- to create a question paper with the help of AI based on thier own blueprint of the question paper.
+
+Student :- focus and test thier knowledge on the specific topic by taking the test on single pdf.
+
+
 ## Project Structure
 
 ---
@@ -20,8 +56,6 @@ To install the dependencies use:
 poetry install
 
 ```
-
-you can use requirmenets.txt file to install the dependencies also , although we recommend using poetry for the same.
 
 Please install and setup docker before running the next steps.
 
