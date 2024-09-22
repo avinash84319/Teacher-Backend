@@ -1,3 +1,9 @@
+Fontend Repo for this project at
+
+https://github.com/project-teacher-student/Teacher-Frontend 
+---
+( contributed by https://github.com/SUBROTOKOIRY , https://github.com/HetarthJain )
+
 ## Screenshots
 
 ![image](images/login.png)
