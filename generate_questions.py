@@ -38,10 +38,9 @@ def generate_template(data):
     return template
 
 
-def generate_questions(data):
+def generate_questions(data,text,analytics):
 
     print("generating questions now")
-    text = data['text']
     
     questions=[]
     for i,section in enumerate(data['sections']):
@@ -65,7 +64,7 @@ def generate_questions(data):
         return data
 
     #generate the questions
-    generated_questions = answer_question(template,text)
+    generated_questions = answer_question(template,text,analytics)
 
     print(f'Generated questions: {generated_questions}')
 

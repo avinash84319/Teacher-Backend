@@ -77,5 +77,11 @@ docker exec -it ollama ollama run llama3.1
 
 ```
 
+then run ngrok 
+
+```
+ngrok http --domain=pet-muskox-honestly.ngrok-free.app 5000
+```
+
 
 

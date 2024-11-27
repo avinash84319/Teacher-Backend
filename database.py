@@ -21,36 +21,44 @@ pool = mydb.cursor()
 
 def create_db():
 
+    database = os.getenv("DB_NAME")
+
     try:
-        pool.execute("CREATE DATABASE IF NOT EXISTS "+os.getenv("DB_NAME"))
-        pool.execute("USE "+os.getenv("DB_NAME)"))
+        pool.execute("CREATE DATABASE IF NOT EXISTS "+database)
+        pool.execute("USE "+database)
         pool.execute("CREATE TABLE IF NOT EXISTS users (id VARCHAR(255), name VARCHAR(255), email VARCHAR(255))")
         pool.execute("CREATE TABLE IF NOT EXISTS passwords (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, password VARCHAR(255))")
-        pool.execute("CREATE TABLE IF NOT EXISTS sections (pdfid VARCHAR(255),sectionid VARCHAR(255) PRIMARY KEY, name VARCHAR(255), mcq TEXT, mc TEXT, ftb TEXT, tf TEXT, mtf TEXT, sub TEXT, pag TEXT,questions TEXT,easy INT,medium INT,hard INT,easyMarks INT,mediumMarks INT,hardMarks INT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS sections (userid VARCHAR(255),sectionid VARCHAR(255) PRIMARY KEY, name VARCHAR(255), mcq TEXT, mc TEXT, ftb TEXT, tf TEXT, mtf TEXT, sub TEXT, pag TEXT,questions TEXT,easy INT,medium INT,hard INT,easyMarks INT,mediumMarks INT,hardMarks INT)")
         pool.execute("CREATE TABLE IF NOT EXISTS userpdfs (userid varchar(255), pdfid VARCHAR(255), pdfname VARCHAR(255))")
-        pool.execute("CREATE TABLE IF NOT EXISTS pdfs (pdfid VARCHAR(255), path TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS pdfpaths (userid varchar(255),pdfid VARCHAR(255), path TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS classes (id INT AUTO_INCREMENT PRIMARY KEY, user_id VARCHAR(255), class_name VARCHAR(255), description TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS students (id INT AUTO_INCREMENT PRIMARY KEY, student_name VARCHAR(255), class_id INT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS studentAnalytics (id INT AUTO_INCREMENT PRIMARY KEY, studentid INT, analytics TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS sectionjson (userid INT,sectionid TEXT,sectionjson TEXT)")
 
         return True
 
     except Exception as e:
         print(e)
-        return False
+        return e
 
 
-def store_pdf(pdf_id, pdf_path):
+def store_pdf_path(userid,pdf_id, pdf_path):
     try:
-        pool.execute("INSERT INTO pdfs (pdfid, path) VALUES (%s, %s)", (pdf_id, pdf_path))
+        result = pool.execute("INSERT INTO pdfpaths (userid,pdfid,path) VALUES (%s, %s, %s)", (userid,pdf_id,pdf_path))
+        print(f"DATABASE: {result}")
 
     except Exception as e:
         return e
 
     return True
 
-def store_user_pdf(user_id, pdf_id,pdf_name):
+def store_user_pdf(user_id,pdf_id,pdf_name):
     try:
 
         # check if the pdf is already stored
-        pool.execute("SELECT * FROM userpdfs WHERE userid = %s AND pdfid = %s", (user_id, pdf_id))
+        result = pool.execute("SELECT * FROM userpdfs WHERE userid = %s AND pdfid = %s", (user_id, pdf_id))
+        print(f"DATABASE: {result}")
         if pool.fetchone():
             return True
         else:
@@ -61,12 +69,12 @@ def store_user_pdf(user_id, pdf_id,pdf_name):
 
     return True
 
-def store_section_info(pdfid,id,data):
+def store_section_info(userid,id,data):
 
     # check if the section is already stored and delete it
-    pool.execute("SELECT * FROM sections WHERE pdfid = %s AND sectionid = %s", (pdfid, id))
+    pool.execute("SELECT * FROM sections WHERE userid = %s AND sectionid = %s", (userid, id))
     if pool.fetchone():
-        pool.execute("DELETE FROM sections WHERE pdfid = %s AND sectionid = %s", (pdfid, id))
+        pool.execute("DELETE FROM sections WHERE userid = %s AND sectionid = %s", (userid, id))
 
     name = data['name']
     mcq = data['mcq']
@@ -95,7 +103,17 @@ def store_section_info(pdfid,id,data):
     questions = json.dumps(questions)
 
     try:
-        pool.execute("INSERT INTO sections (pdfid,sectionid,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s)", (pdfid,id,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks))
+        pool.execute("INSERT INTO sections (userid,sectionid,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s)", (userid,id,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks))
+    except Exception as e:
+        return e
+
+    # directly store json for now
+
+    try:
+
+        data = json.dumps(data)
+
+        pool.execute("INSERT INTO sectionjson (userid,sectionid,sectionjson) VALUES(%s,%s,%s)",(userid,id,data))
     except Exception as e:
         return e
     
@@ -132,7 +150,7 @@ def fetch_files(user_id):
 
         details = []
         for i in range(len(files)):
-            pool.execute("SELECT * FROM sections WHERE pdfid = %s", (files[i][0],))
+            pool.execute("SELECT * FROM sections WHERE userid = %s", (files[i][0],))
             sections = pool.fetchall()
 
             easy=0
@@ -166,11 +184,15 @@ def fetch_files(user_id):
         return False
 
 
-def fetch_section_details(pdf_id):
+def fetch_section_details(userid,sectionid):
     try:
-        pool.execute("SELECT * FROM sections WHERE pdfid = %s", (pdf_id,))
+        print(sectionid)
+
+        pool.execute("SELECT * FROM sections WHERE userid = %s and sectionid = %s", (userid,sectionid))
         
         details=pool.fetchall()
+
+        print(details)
 
         for i in range(len(details)):
             details[i]=list(details[i])
@@ -189,6 +211,25 @@ def fetch_section_details(pdf_id):
         print(e)
         return False
 
+def fetch_section_json(user_id,section_id):
+
+    try:
+
+        print(user_id,section_id)
+
+        pool.execute("SELECT sectionjson FROM sectionjson WHERE userid = %s and sectionid = %s", (user_id,section_id))
+    
+        details = pool.fetchall()
+
+        details = {"sections":[json.loads(details[0][0])]}
+
+        return details
+
+    except Exception as e:
+        print(e)
+        return False
+
+
 
 def delete_pdf(pdf_id):
 
@@ -205,13 +246,74 @@ def delete_pdf(pdf_id):
 
 def get_pdf_path(pdf_id):
     try:
-        pool.execute("SELECT path FROM pdfs WHERE pdfid = %s", (pdf_id,))
+        pool.execute("SELECT path FROM pdfpaths WHERE pdfid = %s", (pdf_id,))
 
         return pool.fetchone()[0]
 
     except Exception as e:
         print(e)
         return False
+
+def creat_class(user_id,class_name,description):
+
+    try:
+        result = pool.execute("INSERT INTO classes (user_id,class_name,description) VALUES (%s,%s,%s)", (user_id,class_name,description))
+
+        # get the id of the class
+        id = result.lastrowid
+
+        return id
+
+    except Exception as e:
+        return False
+
+def create_student(student_name,class_id):
+    try:
+        result = pool.execute("INSERT INTO students (student_name,class_id) VALUES (%s,%s)", (student_name,class_id))
+
+        # get the id of the student
+        id = result.lastrowid
+
+        return id
+
+    except Exception as e:
+        return False
+
+def update_analytics(studentid,analytics):
+    try:
+        analytics = json.dumps(analytics)
+
+        result = pool.execute("INSERT INTO studentAnalytics (studentid,analytics) VALUES (%s,%s)",(studentid,analytics))
+
+        # get the id of the student
+        id = result.lastrowid
+
+        return id
+
+    except Exception as e:
+        return e
+
+def get_analytics(studentid):
+    try:
+        pool.execute("SELECT analytics FROM studentAnalytics WHERE studentid = %s",(studentid,))
+
+        analytics = pool.fetchone()[0]
+
+        return json.loads(analytics)
+
+    except Exception as e:
+        return False
+
+def get_pdf_path(pdf_id):
+    try:
+        pool.execute("SELECT path FROM pdfpaths WHERE pdfid = %s", (pdf_id,))
+
+        return pool.fetchone()[0]
+
+    except Exception as e:
+        print(e)
+        return False
+
 
 
 

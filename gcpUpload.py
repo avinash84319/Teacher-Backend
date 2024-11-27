@@ -36,3 +36,18 @@ def check_bucket():
         return True
     except:
         return False
+
+def get_pdf_text_from_gcp(pdf_path):
+    """Get the text from the pdf"""
+    
+    bucket_name = "teacherstudent"
+    storage_client = storage.Client()
+
+    try:
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.blob("pdf_path")
+        text = blob.download_as_string().decode("utf-8")
+        return text
+
+    except Exception as e:
+        return e

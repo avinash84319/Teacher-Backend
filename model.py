@@ -4,38 +4,58 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import JsonOutputParser
 import os
+# from langchain_google_genai import ChatGoogleGenerativeAI
 
 def make_chain_image():
 
-    template = """ 
-
-    The source text is as follows:
-    {text}
+    # model = llm = ChatGoogleGenerativeAI(
+    # model="gemini-1.5-pro",
+    # temperature=0,
+    # max_tokens=None,
+    # timeout=None,
+    # max_retries=2,
+    # # other params...
+    # )
     
-    based on the text, generate all the following json fields with proper values for the following jsons:
-    {prompt}
+    final_prompt = ChatPromptTemplate.from_template(
+            "You are expert Teacher and Question generator"
+            "User will give you a json structer with questions with difficulty level,marks and type of question"
+            "You have to generate questions based on the given json structure"
+            "Generate the questions and return the json structure with the questions and filling all the fields properly"
 
-    and give the output in list of questions and no of questions in the list should be equal to the number of jsons in the prompt
-    
-    """
-    
-    final_prompt = ChatPromptTemplate.from_template(template)
-
-    model = ChatOllama(model="llama3.1",format="json", base_url=os.getenv("LLAMA_HOST"))
-
-    # RAG pipeline
-    chain = ( 
-        final_prompt
-        | model
-        | JsonOutputParser()
+            "User will also provide you with the student information json which will contain the students previos assesment details"
+            "make sure while generating the questions you take care of the students previous assesment details and generate the questions accordingly"
+            "You have to generate the questions according to the analysis of the students previous assesment details"
+            "Personalize the questions according to the students previous assesment details"
+            "The text to reference questions from :- {text}"
+            "Student previous information :- {student_info}"
+            "Questions json :- {questions}"
+            "GENERATE THIS QUESTIONS ACCORDING TO THE STUDENTS PREVIOUS ASSESMENT DETAILS"
+            "GIVE IN JSON FORMAT ONLY DONT GIVE ANY EXTRA INFORMATION"
     )
+
+    model = ChatOllama(model="llama3.1",format="json")
+
+    chain =  final_prompt | model | JsonOutputParser()
 
     return chain
 
-def answer_question(prompt,text):
+def answer_question(question_json,text,student_info):
     chain = make_chain_image()
-    return chain.invoke({"prompt": prompt,"text":text})
+    
+    ans =""
+    ans = chain.invoke({"student_info":student_info,"questions":question_json,"text":text})
+
+    print(ans)
+    
+    return ans
 
 def check_model():
+
+    model = ChatOllama(model="llama3.1",format="json")
     
-    return answer_question("hello","hello")
+    try:
+        model.invoke("hello")
+        return True
+    except Exception as e:
+        return e
