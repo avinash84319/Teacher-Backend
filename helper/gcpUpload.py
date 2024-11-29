@@ -45,7 +45,7 @@ def get_pdf_text_from_gcp(pdf_path):
 
     try:
         bucket = storage_client.get_bucket(bucket_name)
-        blob = bucket.blob("pdf_path")
+        blob = bucket.blob(pdf_path)
         text = blob.download_as_string().decode("utf-8")
         return text
 

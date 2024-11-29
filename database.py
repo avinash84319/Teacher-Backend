@@ -14,10 +14,9 @@ mydb = mysql.connector.connect(
 )
 
 #damm please upload
-
 mydb.autocommit = True
 
-pool = mydb.cursor()
+pool = mydb.cursor(buffered=True)
 
 def create_db():
 
@@ -35,7 +34,11 @@ def create_db():
         pool.execute("CREATE TABLE IF NOT EXISTS students (id INT AUTO_INCREMENT PRIMARY KEY, student_name VARCHAR(255), class_id INT)")
         pool.execute("CREATE TABLE IF NOT EXISTS studentAnalytics (id INT AUTO_INCREMENT PRIMARY KEY, studentid INT, analytics TEXT)")
         pool.execute("CREATE TABLE IF NOT EXISTS sectionjson (userid INT,sectionid TEXT,sectionjson TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS tests (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, student_id INT, pdf_id TEXT, test_name VARCHAR(255), description TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS testsections (id INT AUTO_INCREMENT PRIMARY KEY, test_id INT, section_id INT, sectiondata TEXT)")
 
+
+        # other ui tables
         return True
 
     except Exception as e:
@@ -218,8 +221,12 @@ def fetch_section_json(user_id,section_id):
         print(user_id,section_id)
 
         pool.execute("SELECT sectionjson FROM sectionjson WHERE userid = %s and sectionid = %s", (user_id,section_id))
-    
+
+        print("after pool execute")
+
         details = pool.fetchall()
+
+        print("in fetch section json" + str(details))
 
         details = {"sections":[json.loads(details[0][0])]}
 
@@ -246,9 +253,15 @@ def delete_pdf(pdf_id):
 
 def get_pdf_path(pdf_id):
     try:
-        pool.execute("SELECT path FROM pdfpaths WHERE pdfid = %s", (pdf_id,))
 
-        return pool.fetchone()[0]
+        pool.execute("SELECT path FROM pdfpaths WHERE pdfid = %s", (pdf_id,))
+        results = pool.fetchall()  # Fetch all rows for the given pdf_id
+
+        if results:
+            # Handle duplicates or return the first one
+            return results[0][0]  # or you can process all results
+        else:
+            return None  # No result found
 
     except Exception as e:
         print(e)
@@ -304,14 +317,62 @@ def get_analytics(studentid):
     except Exception as e:
         return False
 
-def get_pdf_path(pdf_id):
+def get_classes_teacher(user_id):
     try:
-        pool.execute("SELECT path FROM pdfpaths WHERE pdfid = %s", (pdf_id,))
+        pool.execute("SELECT * FROM classes WHERE user_id = %s", (user_id,))
 
-        return pool.fetchone()[0]
+        return pool.fetchall()
+
+    except Exception as e:
+        return False
+
+
+def get_students_class(class_id):
+    try:
+        pool.execute("SELECT * FROM students WHERE class_id = %s", (class_id,))
+
+        return pool.fetchall()
+
+    except Exception as e:
+        return False
+
+def add_test(user_id,student_id,pdf_id,test_name,description):
+    try:
+        
+        pool.execute("INSERT INTO tests (user_id,student_id,pdf_id,test_name,description) VALUES (%s,%s,%s,%s,%s)", (user_id,student_id,pdf_id,test_name,description))
+
+        # get the id of the test with student_id and pdf_id
+
+        pool.execute("SELECT id FROM tests WHERE user_id = %s AND student_id = %s AND pdf_id = %s", (user_id,student_id,pdf_id))
+
+        result = pool.fetchone()
+
+        id = result[0]
+
+        return id
 
     except Exception as e:
         print(e)
+        return False
+
+def add_test_section(test_id,section_id,section_data):
+    try:
+        section_data = json.dumps(section_data)
+
+        result = pool.execute("INSERT INTO testsections (test_id,section_id,sectiondata) VALUES (%s,%s,%s)", (test_id,section_id,section_data))
+
+        return True
+
+    except Exception as e:
+        return False
+
+def get_test_sections(test_id):
+    try:
+        pool.execute("SELECT * FROM testsections WHERE test_id = %s", (test_id,))
+
+        return pool.fetchall()
+
+    except Exception as e:
         return False
 
 

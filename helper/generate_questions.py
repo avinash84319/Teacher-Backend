@@ -1,4 +1,4 @@
-from model import answer_question
+from helper.model import answer_question
 import json
 
 def generate_template(data):
