@@ -20,6 +20,8 @@ def createTest():
 
         if id==False:
             raise Exception("An error occurred while creating the test")
+        
+        print(f"SERVER :- test id at create test :- {id}")
 
         return jsonify({"message": "Test created","id":id}),200
 
@@ -35,8 +37,10 @@ def generateQuestions():
         section_id = data['section_id']
         pdf_id = data['pdf_id']
         test_id = data['test_id']
+        instruction = data['instruction']
+        topics = data['topics']
 
-        print("SERVER :-"+ str(data))
+        print(f"server :- testid:-{test_id}")
 
         # get pdf path in gcp
         pdf_path = get_pdf_path(pdf_id)
@@ -56,7 +60,7 @@ def generateQuestions():
         print("SERVER previous questions:-"+ str(data))
 
         # generate the questions
-        data,questions = generate_questions(data,text,analytics,previous_questions)  
+        data,questions = generate_questions(data,text,analytics,previous_questions,instruction,topics)
 
         # store the questions in the testsection table
         done = add_test_section(test_id,section_id,data)

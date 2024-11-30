@@ -1,8 +1,9 @@
 from database import *
-from helper.gcpUpload import upload_blob
+from helper.gcpUpload import upload_blob,get_pdf_text_from_gcp
 import logging
 from flask import request,jsonify
 import base64
+from helper.model import give_headings
 
 def pdfupload():
 
@@ -34,6 +35,12 @@ def pdfupload():
         #store the pdf path or link in the database
         result=store_pdf_path(userid,pdfid,file_url)
 
+        # get the headings from the pdfs
+        text = get_pdf_text_from_gcp(file_url)
+
+        # get headings json
+        headings = give_headings(text)
+
         print("SERVER:"+str(result))
 
         #storing user pdf details in the database
@@ -44,7 +51,7 @@ def pdfupload():
         if result!=True:
             raise Exception(result)
 
-        return jsonify({"message": "Pdf uploaded","file_url":file_url}),200
+        return jsonify({"message": "Pdf uploaded","file_url":file_url,"headings":headings}),200
 
     except Exception as e:
         logging.error(e)

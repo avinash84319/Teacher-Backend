@@ -365,7 +365,7 @@ def add_test(user_id,student_id,pdf_id,test_name,description):
 
         result = pool.fetchone()
 
-        id = result[0]
+        id = result[-1]
 
         return id
 

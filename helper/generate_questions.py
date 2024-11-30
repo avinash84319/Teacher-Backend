@@ -38,7 +38,7 @@ def generate_template(data):
     return template
 
 
-def generate_questions(data,text,analytics,previous_questions):
+def generate_questions(data,text,analytics,previous_questions,instruction,topics):
 
     print("generating questions now")
     
@@ -64,7 +64,7 @@ def generate_questions(data,text,analytics,previous_questions):
         return data
 
     #generate the questions
-    generated_questions = answer_question(template,text,analytics,previous_questions)
+    generated_questions = answer_question(template,text,analytics,previous_questions,instruction,topics)
 
     print(f'Generated questions: {generated_questions}')
 
