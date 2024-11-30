@@ -36,3 +36,30 @@ def get_analysis():
     except Exception as e:
         logging.error(e)
         return jsonify({"error": "An error occurred " + str(e)})
+
+def students_all():
+    try:
+        students = get_all_students()
+
+        if students==False:
+            raise Exception("an error has occured getting students ")
+
+        return jsonify({"students":students})
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": "An error occurred " + str(e)})
+
+def getStudentwithtests():
+
+    try:
+        students = get_students_with_tests()
+
+        if students==False:
+            raise Exception("an error has occured getting students ")
+
+        return jsonify({"students":students})
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": "An error occurred " + str(e)})

@@ -66,3 +66,14 @@ def students_class():
     except Exception as e:
         logging.error(e)
         return jsonify({"error": "An error occurred " + str(e)})
+
+def classes_with_tests():
+
+    try:
+        classes = get_classes_with_tests()
+
+        return jsonify({"classes":classes})
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"error": "An error occurred " + str(e)})

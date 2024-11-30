@@ -38,7 +38,7 @@ def generate_template(data):
     return template
 
 
-def generate_questions(data,text,analytics):
+def generate_questions(data,text,analytics,previous_questions):
 
     print("generating questions now")
     
@@ -64,12 +64,13 @@ def generate_questions(data,text,analytics):
         return data
 
     #generate the questions
-    generated_questions = answer_question(template,text,analytics)
+    generated_questions = answer_question(template,text,analytics,previous_questions)
 
     print(f'Generated questions: {generated_questions}')
 
     generated_questions=generated_questions["questions"]
     
+    questions_jsons=[]
 
     #store the questions in the data according to the sections and required format
     done_indexes=[-1]*len(generated_questions)
@@ -81,9 +82,10 @@ def generate_questions(data,text,analytics):
                 print(data['sections'][s]['questions'][i])
                 if question['type']==generated_question['type'] and question['difficulty']==generated_question['difficulty'] and str(question['marks'])==str(generated_question['marks']) and done_indexes[j]==-1:
                     data['sections'][s]['questions'][i]['questionDetails']=generated_question
+                    questions_jsons.append(generated_question)
                     done_indexes[j]=i
                     break
             
 
-    return data
+    return data,questions_jsons
 

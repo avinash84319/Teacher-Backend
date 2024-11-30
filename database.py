@@ -35,8 +35,12 @@ def create_db():
         pool.execute("CREATE TABLE IF NOT EXISTS studentAnalytics (id INT AUTO_INCREMENT PRIMARY KEY, studentid INT, analytics TEXT)")
         pool.execute("CREATE TABLE IF NOT EXISTS sectionjson (userid INT,sectionid TEXT,sectionjson TEXT)")
         pool.execute("CREATE TABLE IF NOT EXISTS tests (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, student_id INT, pdf_id TEXT, test_name VARCHAR(255), description TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS testsections (id INT AUTO_INCREMENT PRIMARY KEY, test_id INT, section_id INT, sectiondata TEXT)")
-
+        pool.execute("CREATE TABLE IF NOT EXISTS testsections (id INT AUTO_INCREMENT PRIMARY KEY, test_id INT, section_id TEXT, sectiondata TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS questions (id INT AUTO_INCREMENT PRIMARY KEY, test_id INT,section_id TEXT,question_json TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS materials (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, student_id TEXT, file_url TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS classMaterials (id INT AUTO_INCREMENT PRIMARY KEY,user_id TEXT, class_id INT, file_url TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS studentassignements (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), description TEXT, type VARCHAR(255), due_date DATE, student_id INT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS classassignments (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), description TEXT, type VARCHAR(255), due_date DATE,user_id TEXT, class_id INT, student_id INT)")
 
         # other ui tables
         return True
@@ -214,6 +218,20 @@ def fetch_section_details(userid,sectionid):
         print(e)
         return False
 
+def fetch_section_details(sectionid):
+
+    try:
+
+        pool.execute("SELECT * FROM sections WHERE sectionid = %s", (sectionid,))
+
+        details = pool.fetchall()
+
+        return details[0]
+
+    except Exception as e:
+        print(e)
+        return False
+
 def fetch_section_json(user_id,section_id):
 
     try:
@@ -357,6 +375,8 @@ def add_test(user_id,student_id,pdf_id,test_name,description):
 
 def add_test_section(test_id,section_id,section_data):
     try:
+
+        print("DATABASE: adding test section: " + str(test_id) + " " + str(section_id) + " " )
         section_data = json.dumps(section_data)
 
         result = pool.execute("INSERT INTO testsections (test_id,section_id,sectiondata) VALUES (%s,%s,%s)", (test_id,section_id,section_data))
@@ -364,20 +384,214 @@ def add_test_section(test_id,section_id,section_data):
         return True
 
     except Exception as e:
+        print("DATABASE at add_test_section: " + str(e))
         return False
 
 def get_test_sections(test_id):
     try:
+
         pool.execute("SELECT * FROM testsections WHERE test_id = %s", (test_id,))
+
+        return pool.fetchall()
+
+    except Exception as e:
+        print("DATABASE at get_test_sections: " + str(e))
+        return False
+
+def get_all_students():
+    try:
+        pool.execute("SELECT * FROM students")
+
+        return pool.fetchall()
+
+    except Exception as e:
+        print("DATABASE at get_all_students: " + str(e))
+        return False
+
+def add_question(question,section_id,test_id):
+
+    try:
+        question = json.dumps(question)
+
+        result = pool.execute("INSERT INTO questions (test_id,section_id,question_json) VALUES (%s,%s,%s)", (test_id,section_id,question))
+
+        return True
+
+    except Exception as e:
+        print("DATABASE at add_question: " + str(e))
+        return False
+
+def get_test_questions(test_id,section_id):
+    try:
+        pool.execute("SELECT * FROM questions WHERE test_id = %s and section_id = %s", (test_id,section_id))
 
         return pool.fetchall()
 
     except Exception as e:
         return False
 
+def get_single_question(question_id):
 
+    try:
+        pool.execute("SELECT * FROM questions WHERE id = %s", (question_id,))
 
+        return pool.fetchall()[0][3]
 
+    except Exception as e:
+        return False
 
+def update_question(question_id,question):
+    
+        try:
+            question = json.dumps(question)
+    
+            pool.execute("UPDATE questions SET question_json = %s WHERE id = %s", (question,question_id))
+    
+            return True
+    
+        except Exception as e:
+            return False
 
+def store_material_path(user_id,class_ids,student_ids,file_url):
+    try:
 
+        for class_id in class_ids:
+
+            # put in classMaterials
+
+            pool.execute("INSERT INTO classMaterials (user_id,class_id,file_url) VALUES (%s,%s,%s)", (user_id,class_id,file_url))
+            
+            # get all students in the class
+
+            pool.execute("SELECT * FROM students WHERE class_id = %s", (class_id,))
+
+            students = pool.fetchall()
+
+            for student in students:
+
+                pool.execute("INSERT INTO materials (user_id,student_id,file_url) VALUES (%s,%s,%s)", (user_id,student[0],file_url))
+
+        for student_id in student_ids:
+
+            pool.execute("INSERT INTO materials (user_id,student_id,file_url) VALUES (%s,%s,%s)", (user_id,student_id,file_url))
+
+        return True
+
+    except Exception as e:
+        print("Error at store_material_path: " + str(e))
+        return False
+
+def create_assignment(title,description,type,due_date,user_id,class_ids,student_ids):
+    try:
+
+        print(class_ids,student_ids)
+        
+        for class_id in class_ids:
+
+            # get all students in the class
+
+            pool.execute("SELECT * FROM students WHERE class_id = %s", (class_id,))
+
+            students = pool.fetchall()
+
+            for student in students:
+
+                pool.execute("INSERT INTO studentassignements (title,description,type,due_date,student_id) VALUES (%s,%s,%s,%s,%s)", (title,description,type,due_date,student[0]))
+
+        for student_id in student_ids:
+
+            pool.execute("INSERT INTO classassignments (title,description,type,due_date,user_id,class_id,student_id) VALUES (%s,%s,%s,%s,%s,%s,%s)", (title,description,type,due_date,user_id,class_id,student_id))
+
+        return True
+
+    except Exception as e:
+        print("Error at create_assignment: " + str(e))
+        return False
+
+def get_students_with_tests():
+
+    try:
+        pool.execute("SELECT * FROM students")
+
+        students = pool.fetchall()
+
+        res = []
+
+        for student in students:
+
+            pool.execute("SELECT * FROM tests WHERE student_id = %s", (student[0],))
+
+            tests = pool.fetchall()
+
+            res.append({"student":student,"tests":tests})
+
+        return res
+
+    except Exception as e:
+        print("Error at get_students_with_tests: " + str(e))
+        return False
+
+def get_classes_with_tests():
+
+    try:
+        pool.execute("SELECT * FROM classes")
+
+        classes = pool.fetchall()
+
+        res = []
+
+        for class_ in classes:
+
+            # geeting all tests for the class
+
+            # first get all students in the class
+            pool.execute("SELECT * FROM students WHERE class_id = %s", (class_[0],))
+
+            students = pool.fetchall()
+
+            student_tests  = []
+
+            for student in students:
+
+                # get all tests for the student
+                pool.execute("SELECT * FROM tests WHERE student_id = %s", (student[0],))
+
+                tests = pool.fetchall()
+
+                student_tests.append({"student":student[0],"tests":tests})
+
+            tests = [stt["tests"] for stt in student_tests]
+
+            # removing duplicates
+            resl_tests = []
+            for test in tests:
+                for t in test:
+                    if t not in resl_tests:
+                        resl_tests.append(t)
+
+            # summing up all the tests for the class
+            res.append({"class":class_,"tests":resl_tests})
+
+        return res
+
+    except Exception as e:
+        print("Error at get_classes_with_tests: " + str(e))
+        return False
+
+def get_previous_test_questions(test_id):
+    try:
+        pool.execute("SELECT * FROM questions WHERE test_id = %s", (test_id,))
+
+        return pool.fetchall()
+
+    except Exception as e:
+        return False
+
+def get_materials_for_class(user_id,class_id):
+    try:
+        pool.execute("SELECT * FROM classMaterials WHERE user_id = %s AND class_id = %s", (user_id,class_id))
+
+        return pool.fetchall()
+
+    except Exception as e:
+        return False
