@@ -1,150 +1,101 @@
+# Import necessary modules and packages
 from flask import Flask, request, jsonify
-from database import *
-from pdfparser import pdf_to_text
-from generate_questions import generate_questions
-import logging
-import requests
-from flask_cors import CORS, cross_origin
-import base64
-from auth import google_auth,profile
-from gcpUpload import *
-from model import check_model
+import logging  # For logging errors
+import requests  # For HTTP requests
+from flask_cors import CORS, cross_origin  # For enabling CORS
+import base64  # For encoding/decoding data
+from helper.model import check_model  # For checking model readiness
+from controllers import greet, materials, auth, sections, classes, students, tests,assignment  # Controller functions for routing
 
-
-#setup logging
-# logging.basicConfig(filename='error.log',level=logging.DEBUG)
-
+# Initialize Flask app
 app = Flask(__name__)
+
+# Enable Cross-Origin Resource Sharing (CORS)
 CORS(app)
 
-@app.route('/')
-def hellop():
-    return "Welcome to Backend for teacherstudent"
+# -------------------------------
+# Define Routes and Handlers
+# -------------------------------
 
-@app.route('/api/')
-def hello():
-    return "Welcome to Backend for teacherstudent"
+# ------------------------------- main flow -------------------------------
 
-@app.route('/auth/google', methods=['POST'])
-def google_a():
-    data = request.json
-    return google_auth(data)
+# Root and Hello World routes
+app.add_url_rule('/', 'hellop', greet.hellop, methods=['GET'])  # Simple hello endpoint
+app.add_url_rule('/api', 'hello', greet.hello, methods=['GET'])  # Another hello endpoint for API
 
-@app.route('/api/profile', methods=['GET'])
-def profile_a():
-    auth_header = request.headers.get('Authorization')
-    return profile(auth_header)
+# Authentication routes
+app.add_url_rule('/auth/google', 'google_a', auth.google_a, methods=['POST'])  # Google auth via POST
+app.add_url_rule('/api/profile', 'profile_a', auth.profile_a, methods=['GET'])  # Get user profile
 
-@app.route('/api/fetchFiles')
-def fetchFiles():
-    
-    try:
-        user_id = request.args.get('user_id')
+# Materials related routes
+app.add_url_rule('/api/pdfupload', 'pdfupload', materials.pdfupload, methods=['POST'])  # Upload PDF
 
-        print(" getting files for user ",user_id)
+# Section management routes
+app.add_url_rule('/api/sectionUpload', 'sectionUpload', sections.sectionUpload, methods=['POST'])  # Upload section data
 
-        return jsonify({"user_id": user_id, "files": fetch_files(user_id)})
+# Class management routes
+app.add_url_rule('/api/createClass', 'createClass', classes.createClass, methods=['POST'])  # Create new class
+app.add_url_rule('/api/addstudent', 'addstudent', classes.addstudent, methods=['GET'])  # Add student to class
 
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"error": "An error occurred"})
+# Student analytics routes
+app.add_url_rule('/api/updateStudentAnalytics', 'update_analysis', students.update_analysis, methods=['POST'])  # Update student analytics
+app.add_url_rule('/api/getStudentAnalytics', 'get_analysis', students.get_analysis, methods=['GET'])  # Get student analytics
 
-@app.route('/api/fetchFileDetails')
-def fetchFileDetails():
-    try:
-        pdf_id = request.args.get('pdf_id')
+# Test management routes
+app.add_url_rule('/api/createTest', 'createTest', tests.createTest, methods=['POST'])  # Create new test
+app.add_url_rule('/api/generateQuestions', 'generateQuestions', tests.generateQuestions, methods=['POST'])  # Generate test questions
+app.add_url_rule('/api/getTestSectionsData', 'getTestSections', tests.getTestSections, methods=['GET'])  # Get test sections data
+app.add_url_rule('/api/getTestQuestions', 'getTestQuestions', tests.getTestQuestions, methods=['GET'])  # Get test questions
+app.add_url_rule('/api/getTestSingleQuestion', 'getTestSingleQuestion', tests.getTestSingleQuestion, methods=['GET'])  # Get single test question
+app.add_url_rule('/api/submitQuestion', 'submitQuestion', tests.submitQuestion, methods=['POST'])  # Submit test question
 
-        pdf_url=get_pdf_path(pdf_id)
+# Class and Student retrieval routes
+app.add_url_rule('/api/getTeachersClasses', 'classes_teacher', classes.classes_teacher, methods=['GET'])  # Get classes for teacher
+app.add_url_rule('/api/getClassStudents', 'students_class', classes.students_class, methods=['GET'])  # Get students in a class
+app.add_url_rule('/api/getAllStudents', 'students_all', students.students_all, methods=['GET'])  # Get all students
 
-        print(" getting file details for pdf ",pdf_id)
+# ------------------------------- main flow -------------------------------
 
-        return jsonify({"pdf_id": pdf_id,"pdf_url":pdf_url,"sections": fetch_section_details(pdf_id)})
+# ------------------------------- Screen Flows -------------------------------
 
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"error": "An error occurred"})
+#materials page
+app.add_url_rule('/api/uploadMaterial', 'uploadMaterial', materials.uploadMaterial, methods=['POST'])  # Upload material
 
-@app.route('/api/deleteFile')
-def deleteFile():
-    try:
-        pdf_id = request.args.get('pdf_id')
+#assignments page
+app.add_url_rule('/api/createAssignment', 'createAssignment', assignment.createAssignment, methods=['POST'])  # Create new assignment
 
-        print(" deleting file for pdf ",pdf_id)
+#students page
+app.add_url_rule('/api/getStudentwithtests', 'getStudentwithtests', students.getStudentwithtests, methods=['GET'])  # Get students with tests
 
-        return jsonify({"pdf_id": pdf_id, "status": delete_pdf(pdf_id)})
+#classes page
+app.add_url_rule('/api/getClasseswithtests', 'classes_all', classes.classes_with_tests, methods=['GET'])  # Get classes with tests
 
-    except Exception as e:
-        logging.error(e)
-        return jsonify({"error": "An error occurred"})
+#classes/materials page
+app.add_url_rule('/api/getClassMaterials', 'materials_class', materials.materials_class, methods=['POST'])  # Get materials for class
 
-
-
-@app.route('/api/sectionDetails', methods=['POST'])
-def secStore():
-    # try:
-        result=True
-        data = request.get_json()
-
-        userid=str(data['user_id'])
-        pdfid=str(data['pdf_id'])
-
-
-        pdf=data["pdf_content"]                                    #extracting the pdf
-        pdf = base64.b64decode(pdf)
-        with open(f'./user_files/{userid+"-"+pdfid}.pdf', 'wb') as f: 
-            f.write(pdf)
-                 
-        path = f'./user_files/{userid+"-"+pdfid}.pdf'
-
-        file_url=upload_blob(path,userid+"-"+pdfid+".pdf")                  #uploading the pdf to the gcp cloud storage and returning the url
-
-        text=pdf_to_text(path)                                      #converting the pdf to text
-        data['text']=text
-        print(text)
-
-        data=generate_questions(data)                               #generating questions from the text and storing in the data
-
-        #store the pdf path or link in the database
-        result=store_pdf(pdfid,file_url)
-
-
-        #storing user pdf details in the database
-        result=result and store_user_pdf(userid,pdfid,data['pdf_name'])
-
-        for i,section_data in enumerate(data['sections']):
-
-            # storing the section details in the database
-            result=result and store_section_info(pdfid,pdfid+"/"+str(i),section_data)
-
-        if result!=True:
-
-            raise Exception(result)
-
-        return jsonify({"message": "Section details stored","data":data})
-    # except Exception as e:
-    #     logging.error(e)
-    #     return jsonify({"error": "An error occurred"})
-
+# -------------------------------
+# Server Initialization and Checks
+# -------------------------------
 
 if __name__ == '__main__':
     
-    # check if the tables are created
-    result=create_db()
-    if result!=True:
-        logging.error(result)
-        print(result)
+    # 1. Check if the database tables are created
+    result = create_db()  # This will check if the database and tables are created
+    if result != True:
+        logging.error(result)  # Log the error if tables are not created
+        print("SERVER: " + result)
 
-    # check if model is ready
-    result=check_model()
-    if result!=True:
-        logging.error(result)
-    print(result)
+    # 2. Check if the machine learning model is ready
+    result = check_model()  # This checks if the model is loaded and ready
+    if result != True:
+        logging.error(result)  # Log the error if the model is not ready
+        print("SERVER: " + result)
 
-    #check if the gcp bucket is ready
-    result=check_bucket()
-    if result!=True:
-        logging.error(result)
-        print(result)
-    
+    # 3. Check if the Google Cloud Platform (GCP) bucket is ready
+    result = check_bucket()  # This checks if the GCP bucket is configured correctly
+    if result != True:
+        logging.error(result)  # Log the error if the bucket is not ready
+        print("SERVER: " + result)
 
+    # Start the Flask app in debug mode
     app.run(debug=True)

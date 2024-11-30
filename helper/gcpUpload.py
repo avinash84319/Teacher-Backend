@@ -1,4 +1,6 @@
 from google.cloud import storage
+from pdfminer.high_level import extract_text
+import io
 
 
 def upload_blob(path,gcp_path):
@@ -35,4 +37,31 @@ def check_bucket():
         bucket = storage_client.get_bucket(bucket_name)
         return True
     except:
+        return False
+
+def get_pdf_text_from_gcp(pdf_path):
+    """Get the text from the PDF stored on Google Cloud Storage."""
+
+    try:
+        print(pdf_path)
+
+        bucket_name = "teacherstudent"
+        storage_client = storage.Client()
+
+        path = pdf_path.split("/")[-1]
+        print(path)
+
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.blob(path)
+        # Download PDF as a binary file
+        pdf_content = blob.download_as_bytes()
+        # Extract text from the binary PDF using pdfminer.six
+        text = extract_text(io.BytesIO(pdf_content))
+
+        return text
+
+    except Exception as e:
+
+        print(e)
+
         return False
