@@ -25,22 +25,22 @@ def create_db():
     try:
         pool.execute("CREATE DATABASE IF NOT EXISTS "+database)
         pool.execute("USE "+database)
-        pool.execute("CREATE TABLE IF NOT EXISTS users (id VARCHAR(255), name VARCHAR(255), email VARCHAR(255))")
-        pool.execute("CREATE TABLE IF NOT EXISTS passwords (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, password VARCHAR(255))")
-        pool.execute("CREATE TABLE IF NOT EXISTS sections (userid VARCHAR(255),sectionid VARCHAR(255) PRIMARY KEY, name VARCHAR(255), mcq TEXT, mc TEXT, ftb TEXT, tf TEXT, mtf TEXT, sub TEXT, pag TEXT,questions TEXT,easy INT,medium INT,hard INT,easyMarks INT,mediumMarks INT,hardMarks INT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS users (id INT, name VARCHAR(255), email VARCHAR(255))")
+        pool.execute("CREATE TABLE IF NOT EXISTS passwords (id INT AUTO_INCREMENT PRIMARY KEY, user_id varchar(255), password VARCHAR(255))")
+        pool.execute("CREATE TABLE IF NOT EXISTS sections (userid VARCHAR(255),sectionid VARCHAR(255) PRIMARY KEY, name VARCHAR(255), mcq TEXT, mc TEXT, ftb TEXT, tf TEXT, mtf TEXT, sub TEXT, pag TEXT,questions TEXT,easy varchar(255),medium varchar(255),hard varchar(255),easyMarks varchar(255),mediumMarks varchar(255),hardMarks varchar(255))")
         pool.execute("CREATE TABLE IF NOT EXISTS userpdfs (userid varchar(255), pdfid VARCHAR(255), pdfname VARCHAR(255))")
         pool.execute("CREATE TABLE IF NOT EXISTS pdfpaths (userid varchar(255),pdfid VARCHAR(255), path TEXT)")
         pool.execute("CREATE TABLE IF NOT EXISTS classes (id INT AUTO_INCREMENT PRIMARY KEY, user_id VARCHAR(255), class_name VARCHAR(255), description TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS students (id INT AUTO_INCREMENT PRIMARY KEY, student_name VARCHAR(255), class_id INT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS studentAnalytics (id INT AUTO_INCREMENT PRIMARY KEY, studentid INT, analytics TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS sectionjson (userid INT,sectionid TEXT,sectionjson TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS tests (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, student_id INT, pdf_id TEXT, test_name VARCHAR(255), description TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS testsections (id INT AUTO_INCREMENT PRIMARY KEY, test_id INT, section_id TEXT, sectiondata TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS questions (id INT AUTO_INCREMENT PRIMARY KEY, test_id INT,section_id TEXT,question_json TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS materials (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, student_id TEXT, file_url TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS classMaterials (id INT AUTO_INCREMENT PRIMARY KEY,user_id TEXT, class_id INT, file_url TEXT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS studentassignements (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), description TEXT, type VARCHAR(255), due_date DATE, student_id INT)")
-        pool.execute("CREATE TABLE IF NOT EXISTS classassignments (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), description TEXT, type VARCHAR(255), due_date DATE,user_id TEXT, class_id INT, student_id INT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS students (id INT AUTO_INCREMENT PRIMARY KEY, student_name VARCHAR(255), class_id varchar(255))")
+        pool.execute("CREATE TABLE IF NOT EXISTS studentAnalytics (id INT AUTO_INCREMENT PRIMARY KEY, studentid varchar(255), analytics TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS sectionjson (userid varchar(255),sectionid TEXT,sectionjson TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS tests (id INT AUTO_INCREMENT PRIMARY KEY, user_id varchar(255), student_id varchar(255), pdf_id TEXT, test_name VARCHAR(255), description TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS testsections (id INT AUTO_INCREMENT PRIMARY KEY, test_id varchar(255), section_id TEXT, sectiondata TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS questions (id INT AUTO_INCREMENT PRIMARY KEY, test_id varchar(255),section_id TEXT,question_json TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS materials (id INT AUTO_INCREMENT PRIMARY KEY, user_id varchar(255), student_id TEXT, file_url TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS classMaterials (id INT AUTO_INCREMENT PRIMARY KEY,user_id TEXT, class_id varchar(255), file_url TEXT)")
+        pool.execute("CREATE TABLE IF NOT EXISTS studentassignements (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), description TEXT, type VARCHAR(255), due_date DATE, student_id varchar(255))")
+        pool.execute("CREATE TABLE IF NOT EXISTS classassignments (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), description TEXT, type VARCHAR(255), due_date DATE,user_id TEXT, class_id varchar(255), student_id varchar(255))")
 
         # other ui tables
         return True
@@ -52,7 +52,7 @@ def create_db():
 
 def store_pdf_path(userid,pdf_id, pdf_path):
     try:
-        result = pool.execute("INSERT INTO pdfpaths (userid,pdfid,path) VALUES (%s, %s, %s)", (userid,pdf_id,pdf_path))
+        result = pool.execute("INSERT into pdfpaths (userid,pdfid,path) VALUES (%s, %s, %s)", (userid,pdf_id,pdf_path))
         print(f"DATABASE: {result}")
 
     except Exception as e:
@@ -69,7 +69,7 @@ def store_user_pdf(user_id,pdf_id,pdf_name):
         if pool.fetchone():
             return True
         else:
-            pool.execute("INSERT INTO userpdfs (userid, pdfid,pdfname) VALUES (%s, %s, %s)", (user_id, pdf_id, pdf_name))
+            pool.execute("INSERT into userpdfs (userid, pdfid,pdfname) VALUES (%s, %s, %s)", (user_id, pdf_id, pdf_name))
 
     except Exception as e:
         return e
@@ -110,7 +110,7 @@ def store_section_info(userid,id,data):
     questions = json.dumps(questions)
 
     try:
-        pool.execute("INSERT INTO sections (userid,sectionid,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s)", (userid,id,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks))
+        pool.execute("INSERT into sections (userid,sectionid,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s)", (userid,id,name, mcq, mc, ftb, tf, mtf, sub, pag,questions,easy,medium,hard,easyMarks,mediumMarks,hardMarks))
     except Exception as e:
         return e
 
@@ -120,7 +120,7 @@ def store_section_info(userid,id,data):
 
         data = json.dumps(data)
 
-        pool.execute("INSERT INTO sectionjson (userid,sectionid,sectionjson) VALUES(%s,%s,%s)",(userid,id,data))
+        pool.execute("INSERT into sectionjson (userid,sectionid,sectionjson) VALUES(%s,%s,%s)",(userid,id,data))
     except Exception as e:
         return e
     
@@ -139,7 +139,7 @@ def get_user(id):
 
 def add_user(id,name, email):
     try:
-        pool.execute("INSERT INTO users (id,name, email) VALUES (%s,%s,%s)", (id,name, email))
+        pool.execute("INSERT into users (id,name, email) VALUES (%s,%s,%s)", (id,name, email))
 
     except Exception as e:
         return e
@@ -288,7 +288,7 @@ def get_pdf_path(pdf_id):
 def creat_class(user_id,class_name,description):
 
     try:
-        result = pool.execute("INSERT INTO classes (user_id,class_name,description) VALUES (%s,%s,%s)", (user_id,class_name,description))
+        result = pool.execute("INSERT into classes (user_id,class_name,description) VALUES (%s,%s,%s)", (user_id,class_name,description))
 
         # get the id of the class
         id = result.lastrowid
@@ -300,7 +300,7 @@ def creat_class(user_id,class_name,description):
 
 def create_student(student_name,class_id):
     try:
-        result = pool.execute("INSERT INTO students (student_name,class_id) VALUES (%s,%s)", (student_name,class_id))
+        result = pool.execute("INSERT into students (student_name,class_id) VALUES (%s,%s)", (student_name,class_id))
 
         # get the id of the student
         id = result.lastrowid
@@ -314,7 +314,7 @@ def update_analytics(studentid,analytics):
     try:
         analytics = json.dumps(analytics)
 
-        result = pool.execute("INSERT INTO studentAnalytics (studentid,analytics) VALUES (%s,%s)",(studentid,analytics))
+        result = pool.execute("INSERT into studentAnalytics (studentid,analytics) VALUES (%s,%s)",(studentid,analytics))
 
         # get the id of the student
         id = result.lastrowid
@@ -357,7 +357,7 @@ def get_students_class(class_id):
 def add_test(user_id,student_id,pdf_id,test_name,description):
     try:
         
-        pool.execute("INSERT INTO tests (user_id,student_id,pdf_id,test_name,description) VALUES (%s,%s,%s,%s,%s)", (user_id,student_id,pdf_id,test_name,description))
+        pool.execute("INSERT into tests (user_id,student_id,pdf_id,test_name,description) VALUES (%s,%s,%s,%s,%s)", (user_id,student_id,pdf_id,test_name,description))
 
         # get the id of the test with student_id and pdf_id
 
@@ -379,7 +379,7 @@ def add_test_section(test_id,section_id,section_data):
         print("DATABASE: adding test section: " + str(test_id) + " " + str(section_id) + " " )
         section_data = json.dumps(section_data)
 
-        result = pool.execute("INSERT INTO testsections (test_id,section_id,sectiondata) VALUES (%s,%s,%s)", (test_id,section_id,section_data))
+        result = pool.execute("INSERT into testsections (test_id,section_id,sectiondata) VALUES (%s,%s,%s)", (test_id,section_id,section_data))
 
         return True
 
@@ -413,7 +413,7 @@ def add_question(question,section_id,test_id):
     try:
         question = json.dumps(question)
 
-        result = pool.execute("INSERT INTO questions (test_id,section_id,question_json) VALUES (%s,%s,%s)", (test_id,section_id,question))
+        result = pool.execute("INSERT into questions (test_id,section_id,question_json) VALUES (%s,%s,%s)", (test_id,section_id,question))
 
         return True
 
@@ -459,7 +459,7 @@ def store_material_path(user_id,class_ids,student_ids,file_url):
 
             # put in classMaterials
 
-            pool.execute("INSERT INTO classMaterials (user_id,class_id,file_url) VALUES (%s,%s,%s)", (user_id,class_id,file_url))
+            pool.execute("INSERT into classMaterials (user_id,class_id,file_url) VALUES (%s,%s,%s)", (user_id,class_id,file_url))
             
             # get all students in the class
 
@@ -469,11 +469,11 @@ def store_material_path(user_id,class_ids,student_ids,file_url):
 
             for student in students:
 
-                pool.execute("INSERT INTO materials (user_id,student_id,file_url) VALUES (%s,%s,%s)", (user_id,student[0],file_url))
+                pool.execute("INSERT into materials (user_id,student_id,file_url) VALUES (%s,%s,%s)", (user_id,student[0],file_url))
 
         for student_id in student_ids:
 
-            pool.execute("INSERT INTO materials (user_id,student_id,file_url) VALUES (%s,%s,%s)", (user_id,student_id,file_url))
+            pool.execute("INSERT into materials (user_id,student_id,file_url) VALUES (%s,%s,%s)", (user_id,student_id,file_url))
 
         return True
 
@@ -496,11 +496,11 @@ def create_assignment(title,description,type,due_date,user_id,class_ids,student_
 
             for student in students:
 
-                pool.execute("INSERT INTO studentassignements (title,description,type,due_date,student_id) VALUES (%s,%s,%s,%s,%s)", (title,description,type,due_date,student[0]))
+                pool.execute("INSERT into studentassignements (title,description,type,due_date,student_id) VALUES (%s,%s,%s,%s,%s)", (title,description,type,due_date,student[0]))
 
         for student_id in student_ids:
 
-            pool.execute("INSERT INTO classassignments (title,description,type,due_date,user_id,class_id,student_id) VALUES (%s,%s,%s,%s,%s,%s,%s)", (title,description,type,due_date,user_id,class_id,student_id))
+            pool.execute("INSERT into classassignments (title,description,type,due_date,user_id,class_id,student_id) VALUES (%s,%s,%s,%s,%s,%s,%s)", (title,description,type,due_date,user_id,class_id,student_id))
 
         return True
 
