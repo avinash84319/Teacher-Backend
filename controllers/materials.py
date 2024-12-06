@@ -21,6 +21,7 @@ def pdfupload():
         pdfid=str(data['pdf_id'])
         pdf=data["pdf_content"]                                     #extracting the pdf
 
+        print("SERVER:"+pdf_name+" "+userid+" "+pdfid)
         if userid=="" or pdfid=="" or pdf=="" or pdf_name=="":
             raise Exception("Please provide all the details")
 

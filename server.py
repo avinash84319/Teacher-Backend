@@ -6,6 +6,8 @@ from flask_cors import CORS, cross_origin  # For enabling CORS
 import base64  # For encoding/decoding data
 from helper.model import check_model  # For checking model readiness
 from controllers import greet, materials, auth, sections, classes, students, tests,assignment  # Controller functions for routing
+from database import create_db  # For checking database readiness
+from helper.gcpUpload import check_bucket  # For checking GCP bucket readiness
 
 # Initialize Flask app
 app = Flask(__name__)

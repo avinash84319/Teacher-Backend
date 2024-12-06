@@ -7,6 +7,10 @@ import os
 
 #langsmith trace
 from langsmith.run_helpers import traceable
+
+
+# using gen ai from google
+# from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_vertexai import ChatVertexAI
 
 os.environ["LANGSMITH_TRACING"] = "true"
@@ -78,13 +82,15 @@ def answer_question(question_json,text,student_info,previous_questions,instructi
 
 def check_model():
 
-    model = ChatOllama(model="llama3.1",format="json")
+    # model = ChatOllama(model="llama3.1",format="json")
     
-    try:
-        model.invoke("hello")
-        return True
-    except Exception as e:
-        return e
+    # try:
+    #     model.invoke("hello")
+    #     return True
+    # except Exception as e:
+    #     return e
+
+    return True
 
 def give_headings(text):
 
